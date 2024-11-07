@@ -1,0 +1,21 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Media Downloader</title>
+</head>
+<body>
+    <h1>Download Media</h1>
+    <input type="text" id="media-url" placeholder="Enter Media URL"/>
+    <button id="download-button">Download</button>
+
+    <script>
+        document.getElementById('download-button').addEventListener('click', function() {
+            const url = document.getElementById('media-url').value;
+            alert('Attempting to download from: ' + url);
+            // Intégrer votre script de téléchargement ici
+        });
+    </script>
+</body>
+</html>
