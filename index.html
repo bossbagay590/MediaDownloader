@@ -1,20 +1,78 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="fr">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Media Downloader</title>
+    <title>MediaDownloader</title>
 </head>
 <body>
-    <h1>Download Media</h1>
-    <input type="text" id="media-url" placeholder="Enter Media URL"/>
-    <button id="download-button">Download</button>
+
+    <h1>Téléchargement de Vidéo</h1>
+    <form id="downloadForm">
+        <label for="videoUrl">URL de la Vidéo Facebook:</label><br>
+        <input type="text" id="videoUrl" name="videoUrl" required><br><br>
+        <button type="submit">Télécharger la Vidéo</button>
+    </form>
+    <div id="result"></div>
 
     <script>
-        document.getElementById('download-button').addEventListener('click', function() {
-            const url = document.getElementById('media-url').value;
-            alert('Attempting to download from: ' + url);
-            // Intégrer votre script de téléchargement ici
+        // Votre script intégré ici
+        var LINK_TYPE_SD = 'sd_src_no_ratelimit';
+        var LINK_TYPE_HD = 'hd_src_no_ratelimit';
+
+        document.getElementById('downloadForm').addEventListener('submit', function(event) {
+            event.preventDefault(); // Empêche l'envoi du formulaire
+            var videoUrl = document.getElementById('videoUrl').value;
+
+            // C'est ici que le code extractif sera exécuté
+            (function downloadVideo(type) {
+                function getMyObject(doc) {
+                    var scriptsCollection = doc.getElementsByTagName("script");
+                    var scripts = [];
+                    var regExp = /video_ids/i;
+                    for (var i = scriptsCollection.length - 1; i >= 0; i--) {
+                        var script = scriptsCollection[i].innerHTML;
+                        if (regExp.test(script)) {
+                            scripts.push(script);
+                        }
+                    }
+
+                    var videoData = scripts[0].match(/"?videoData"?:(\[\{[^}]*\}\])/g).map(function(d) {
+                        return eval(d.match(/"?videoData"?:(\[\{[^}]*\}\])/)[1])[0];
+                    });
+
+                    var paramsObject = {
+                        videoData: videoData
+                    }
+                    return {
+                        paramsObjects: [paramsObject],
+                    };
+                }
+
+                function getDownloadLink(doc, video_id, type) {
+                    var myObject = getMyObject(doc);
+                    var dwLinks = myObject.paramsObjects[0].videoData.filter(function(video) {
+                        return video.video_id == video_id;
+                    })[0];
+                    return dwLinks[type];
+                }
+
+                function download(type) {
+                    var videoId = document.location.href.match(/https?:\/\/www\.facebook\.com\/[^/]+\/videos\/([^/]+)/)[1];
+                    var link = getDownloadLink(document, videoId, type);
+
+                    var a = document.createElement('a');
+                    a.href = link;
+                    a.setAttribute('download', 'download');
+                    a.click();
+                }
+
+                return download(type);
+            })(LINK_TYPE_SD);
+
+            // En fonction de l'URL fournie, il peut être nécessaire de naviguer vers la page de la vidéo avant d'exécuter le script,
+            // car certaines données doivent être présentes dans le DOM.
+            window.location.href = videoUrl;  // Naviguer vers l'URL de la vidéo
         });
     </script>
 </body>
